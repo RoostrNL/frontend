@@ -1,19 +1,14 @@
 use iced::time::Instant;
-use iced::widget::{column, container, progress_bar, row, space, text};
+use iced::widget::{column, container, progress_bar, row, space};
 use iced::{Alignment, Border, Color, Element, Font, Length, Subscription, Task, Theme, window};
 
 use crate::components::Lesson;
-use crate::typography::muted;
+use crate::typography;
 
 pub const TIMEOUT: u16 = 10;
 
 const CARD_PADDING: u16 = 12;
 const SPACING: f32 = 12.0;
-
-const TITLE_SIZE: f32 = 18.0;
-const BODY_SIZE: f32 = 14.0;
-const LABEL_SIZE: f32 = 12.0;
-const TEMPERATURE_SIZE: f32 = 36.0;
 
 const AVATAR_SIZE: f32 = 45.0;
 const CARD_RADIUS: f32 = 12.0;
@@ -43,10 +38,8 @@ impl Sidepanel {
             row![
                 avatar::<M>(&self.user_name),
                 column![
-                    text(self.app_name.as_str()).size(TITLE_SIZE),
-                    text(format!("Welkom, {}", self.user_name))
-                        .size(BODY_SIZE)
-                        .style(muted),
+                    typography::title(self.app_name.as_str()),
+                    typography::meta(format!("Welkom, {}", self.user_name)),
                 ]
                 .spacing(2),
             ]
@@ -56,21 +49,17 @@ impl Sidepanel {
 
         let upcoming_lesson = match &self.next_lesson {
             Some(lesson) => Some(card(
-                column![
-                    text("Volgende les:").size(LABEL_SIZE).style(muted),
-                    lesson.view(),
-                ]
-                .spacing(8),
+                column![typography::meta("Volgende les:"), lesson.view(),].spacing(8),
             )),
             None => None,
         };
 
         let weather = card(
             column![
-                text("Weer").size(LABEL_SIZE).style(muted),
+                typography::meta("Weer"),
                 row![
-                    text("--°").size(TEMPERATURE_SIZE),
-                    text("Placeholder").size(BODY_SIZE),
+                    typography::display("--°"),
+                    typography::body("Placeholder"),
                 ]
                 .spacing(SPACING)
                 .align_y(Alignment::Center),
@@ -94,8 +83,7 @@ fn avatar<'a, M: 'a>(user_name: &str) -> Element<'a, M> {
         .unwrap_or_else(|| "?".to_owned());
 
     container(
-        text(initial)
-            .size(TITLE_SIZE)
+        typography::title(initial)
             .color(Color::WHITE)
             .font(Font::MONOSPACE),
     )
@@ -144,3 +132,4 @@ fn styled_card<'a, M: 'a>(content: impl Into<Element<'a, M>>, vibrant: bool) -> 
         })
         .into()
 }
+
