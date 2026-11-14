@@ -3,6 +3,7 @@ use chrono::{DateTime, Local};
 use iced::widget;
 use iced::{Alignment, Border, Element, Font, Length, Theme};
 
+use crate::api::Lesson as ApiLesson;
 use crate::typography;
 
 pub const TIME_FORMAT: &str = "%I:%M";
@@ -13,7 +14,7 @@ const RADIUS: f32 = 10.0;
 const BORDER: f32 = 1.0;
 const ACCENT: f32 = 6.0;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Lesson {
     pub title: String,
     pub teacher: String,

@@ -22,14 +22,14 @@ const BAR_THICKNESS: f32 = 4.0;
 pub struct Sidepanel {
     app_name: String,
     user_name: String,
-    next_lesson: Lesson,
+    next_lesson: Option<Lesson>,
 }
 
 impl Sidepanel {
     pub fn new(
         app_name: impl Into<String>,
         user_name: impl Into<String>,
-        next_lesson: Lesson,
+        next_lesson: Option<Lesson>,
     ) -> Self {
         Self {
             app_name: app_name.into(),
@@ -54,13 +54,16 @@ impl Sidepanel {
             .align_y(Alignment::Center),
         );
 
-        let upcoming_lesson = card(
-            column![
-                text("Volgende les:").size(LABEL_SIZE).style(muted),
-                self.next_lesson.view(),
-            ]
-            .spacing(8),
-        );
+        let upcoming_lesson = match &self.next_lesson {
+            Some(lesson) => Some(card(
+                column![
+                    text("Volgende les:").size(LABEL_SIZE).style(muted),
+                    lesson.view(),
+                ]
+                .spacing(8),
+            )),
+            None => None,
+        };
 
         let weather = card(
             column![

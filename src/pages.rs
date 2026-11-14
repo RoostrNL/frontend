@@ -1,5 +1,5 @@
-mod login_page;
 mod schedule_page;
+mod static_pages;
 
-pub use login_page::*;
 pub use schedule_page::*;
+pub use static_pages::*;

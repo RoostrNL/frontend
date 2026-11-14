@@ -25,12 +25,17 @@ const PADDING: u16 = 8;
 type Type = Local;
 
 impl SchedulePage {
-    pub fn new(lessons: &[Lesson], user_name: String, duration: Duration) -> Self {
+    pub fn new(
+        lessons: &[Lesson],
+        user_name: String,
+        app_name: String,
+        duration: Duration,
+    ) -> Self {
         let start_time = Self::at(START_TIME.0, START_TIME.1);
         let end_time = Self::at(END_TIME.0, END_TIME.1);
 
         let schedule = Schedule::new(lessons, start_time, end_time);
-        let sidepanel = Sidepanel::new("CLDay", user_name.clone(), lessons[0].clone());
+        let sidepanel = Sidepanel::new(app_name, user_name.clone(), None);
 
         let begin = Instant::now();
 
