@@ -38,7 +38,7 @@ impl Sidepanel {
             row![
                 avatar::<M>(&self.user_name),
                 column![
-                    typography::title(self.app_name.as_str()),
+                    typography::heading(self.app_name.as_str()),
                     typography::meta(format!("Welkom, {}", self.user_name)),
                 ]
                 .spacing(2),
@@ -57,12 +57,9 @@ impl Sidepanel {
         let weather = card(
             column![
                 typography::meta("Weer"),
-                row![
-                    typography::display("--°"),
-                    typography::body("Placeholder"),
-                ]
-                .spacing(SPACING)
-                .align_y(Alignment::Center),
+                row![typography::display("--°"), typography::body("Placeholder"),]
+                    .spacing(SPACING)
+                    .align_y(Alignment::Center),
             ]
             .spacing(8),
         );
@@ -83,7 +80,7 @@ fn avatar<'a, M: 'a>(user_name: &str) -> Element<'a, M> {
         .unwrap_or_else(|| "?".to_owned());
 
     container(
-        typography::title(initial)
+        typography::heading(initial)
             .color(Color::WHITE)
             .font(Font::MONOSPACE),
     )
@@ -132,4 +129,3 @@ fn styled_card<'a, M: 'a>(content: impl Into<Element<'a, M>>, vibrant: bool) -> 
         })
         .into()
 }
-

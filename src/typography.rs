@@ -5,15 +5,14 @@ use iced::{
     widget::{Text, text},
 };
 
+pub const BANNER: u32 = 56;
+pub const BANNER_HINT: u32 = 32;
+pub const DISPLAY: u32 = 36;
 pub const HEADING: u32 = 22;
 pub const TITLE: u32 = 15;
 pub const BODY: u32 = 13;
 pub const META: u32 = 11;
 pub const FINE: u32 = 9;
-
-pub const DISPLAY: u32 = 36;
-pub const BANNER: u32 = 56;
-pub const BANNER_HINT: u32 = 32;
 
 pub fn banner<'a>(content: impl iced::widget::text::IntoFragment<'a>) -> Text<'a> {
     text(content).size(BANNER)
@@ -61,4 +60,3 @@ pub fn muted(theme: &Theme) -> text::Style {
         color: Some(theme.palette().text.scale_alpha(0.65)),
     }
 }
-
