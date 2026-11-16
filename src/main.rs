@@ -213,28 +213,7 @@ async fn request_lesson(api: Api, id: String) -> Result<ApiSchedule, ApiErrors> 
     let timetable = api.get_timetable(&id).await?;
     let user = api.get_user(&id).await?;
 
-    let lessons: Vec<Lesson> = timetable
-        .lessons
-        .iter()
-        .map(|x| convert_lesson(x))
-        .collect();
+    let lessons: Vec<Lesson> = timetable.lessons.iter().map(|x| x.into()).collect();
 
     Ok((user.first_name, lessons))
-}
-
-fn convert_lesson(l: &ApiLesson) -> Lesson {
-    let start_time = l.start.with_timezone(&Local);
-    let end_time = l.end.with_timezone(&Local);
-
-    let start_time = SchedulePage::at(start_time.hour() as u8, start_time.minute() as u8);
-    let end_time = SchedulePage::at(end_time.hour() as u8, end_time.minute() as u8);
-
-    Lesson {
-        title: l.subjects.join(", "),
-        teacher: l.teachers.join(", "),
-        location: l.locations.join(", "),
-        lesson_index: (l.start_time_slot > 0).then_some(l.start_time_slot as u16),
-        start_time: start_time,
-        end_time: end_time,
-    }
 }

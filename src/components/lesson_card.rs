@@ -1,9 +1,10 @@
 use chrono::format::Colons::Colon;
-use chrono::{DateTime, Local};
+use chrono::{DateTime, Local, Timelike};
 use iced::widget;
 use iced::{Alignment, Border, Element, Font, Length, Theme};
 
 use crate::api::Lesson as ApiLesson;
+use crate::pages::SchedulePage;
 use crate::typography;
 
 pub const TIME_FORMAT: &str = "%I:%M";
@@ -22,6 +23,30 @@ pub struct Lesson {
     pub lesson_index: Option<u16>,
     pub start_time: DateTime<Local>,
     pub end_time: DateTime<Local>,
+}
+
+impl From<&ApiLesson> for Lesson {
+    fn from(l: &ApiLesson) -> Self {
+        let start_time = l.start.with_timezone(&Local);
+        let end_time = l.end.with_timezone(&Local);
+
+        let start_time = SchedulePage::at(start_time.hour() as u8, start_time.minute() as u8);
+        let end_time = SchedulePage::at(end_time.hour() as u8, end_time.minute() as u8);
+
+        Lesson {
+            title: l.subjects.join(", "),
+            teacher: l.teachers.join(", "),
+            location: l.locations.join(", "),
+            lesson_index: (l.start_time_slot > 0).then_some(l.start_time_slot as u16),
+            start_time: start_time,
+            end_time: end_time,
+        }
+    }
+}
+impl From<ApiLesson> for Lesson {
+    fn from(value: ApiLesson) -> Self {
+        Lesson::from(&value)
+    }
 }
 
 fn container_style(theme: &Theme) -> widget::container::Style {
