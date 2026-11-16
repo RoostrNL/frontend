@@ -38,8 +38,8 @@ impl Sidepanel {
             row![
                 avatar::<M>(&self.user_name),
                 column![
-                    typography::heading(self.app_name.as_str()),
-                    typography::meta(format!("Welkom, {}", self.user_name)),
+                    typography::heading(format!("Hoi, {}", self.user_name)),
+                    typography::meta(format!("Welkom bij {}.", self.app_name.as_str())),
                 ]
                 .spacing(2),
             ]
