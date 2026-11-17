@@ -8,7 +8,8 @@ pub struct Config {
     pub app_url: String,
     pub app_token: String,
     pub app_name: String,
-    pub timeout: Duration,
+    pub schedule_timeout: Duration,
+    pub api_retry_duration: Duration,
 }
 
 impl Default for Config {
@@ -17,7 +18,8 @@ impl Default for Config {
             app_url: "".into(),
             app_token: "".into(),
             app_name: "Roostr".into(),
-            timeout: Duration::from_secs(10),
+            schedule_timeout: Duration::from_secs(10),
+            api_retry_duration: Duration::from_secs(60),
         }
     }
 }
