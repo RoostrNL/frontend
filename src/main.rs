@@ -189,7 +189,7 @@ impl App {
         let config = self.config_manager.get();
         match &self.page {
             Pages::SchedulePage(page) => page.view(),
-            Pages::LoginPage => StaticPages::view(),
+            Pages::LoginPage => StaticPages::scan(),
             Pages::SetupPage => StaticPages::setup(&config.app_name),
             Pages::None => widget::space().into(),
         }

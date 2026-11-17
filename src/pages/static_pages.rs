@@ -38,7 +38,7 @@ fn build_page<'a, Message: 'a>(
     container(content).center(Length::Fill).into()
 }
 impl StaticPages {
-    pub fn view<'a, Message: 'a>() -> Element<'a, Message> {
+    pub fn scan<'a, Message: 'a>() -> Element<'a, Message> {
         build_page(
             SCAN_CARD,
             "Scan je schoolpas",
