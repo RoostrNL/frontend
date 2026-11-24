@@ -5,8 +5,10 @@ use iced::{
     Element, Subscription, Task, Theme,
     application::IntoBoot,
     keyboard,
+    wgpu::wgc::command::PassErrorScope::WriteTimestamp,
     widget::{self, column},
 };
+use tokio::time;
 
 use crate::{
     api::{Api, ApiErrors, Lesson as ApiLesson},
@@ -27,12 +29,16 @@ type ApiSchedule = (String, Vec<Lesson>);
 enum Messages {
     SchedulePage(SchedulePageMessage),
     KeyEvent(keyboard::Event),
+    SwitchPage(Pages),
     ApiSetup(Result<Api, ApiErrors>),
     ApiLoaded(Result<Api, ApiErrors>),
     ApiScheduleReceived(Result<ApiSchedule, ApiErrors>),
+    ApiRetry,
 }
 enum Pages {
     SchedulePage(SchedulePage),
+    ErrorPage(String),
+    LoadingPage,
     LoginPage,
     SetupPage,
     None,
@@ -86,6 +92,12 @@ impl App {
 
     fn update(&mut self, message: Messages) -> Task<Messages> {
         match message {
+            Messages::SwitchPage(page) => {
+                self.page = page;
+                Task::none()
+            }
+
+            // Schedulepage Logic
             Messages::SchedulePage(SchedulePageMessage::Finished)
                 if matches!(self.page, Pages::SchedulePage(_)) =>
             {
@@ -98,6 +110,7 @@ impl App {
                 schedule_page.update(msg).map(Messages::SchedulePage)
             }
 
+            // Keyboard Logic
             Messages::KeyEvent(keyboard::Event::KeyPressed {
                 key: keyboard::Key::Named(keyboard::key::Named::Enter),
                 repeat: false,
@@ -125,6 +138,7 @@ impl App {
                 Task::none()
             }
 
+            // Api Logic (positive)
             Messages::ApiSetup(Ok(api)) | Messages::ApiLoaded(Ok(api)) => {
                 self.api = Some(api);
                 self.page = Pages::LoginPage;
@@ -139,36 +153,60 @@ impl App {
                 Task::none()
             }
 
-            Messages::ApiSetup(Err(err)) => {
-                eprintln!("{:?}", err);
-                // TODO: show error message toast
-                self.page = Pages::SetupPage;
-                Task::none()
-            }
-
-            Messages::ApiLoaded(Err(err)) => {
-                eprintln!("{:?}", err);
-                // TODO: show error message and either retry every 60s or go back to setup page
-                self.page = Pages::None; // TODO: custom error page
-                Task::none()
-            }
-
-            Messages::ApiScheduleReceived(Err(err)) => {
-                eprintln!("{:?}", err);
-                // TODO: show error toast
-                self.page = Pages::LoginPage;
-                Task::none()
-            }
-
             Messages::ApiScheduleReceived(Ok(schedule)) => {
                 let config = self.config_manager.get();
                 self.page = Pages::SchedulePage(SchedulePage::new(
                     &schedule.1,
                     schedule.0,
                     config.app_name.clone(),
-                    config.timeout,
+                    config.schedule_timeout,
                 ));
                 Task::none()
+            }
+
+            // Api logic (negative)
+            Messages::ApiRetry => {
+                let config = self.config_manager.get();
+                self.page = Pages::LoadingPage;
+
+                Task::perform(
+                    Api::with_token(config.app_url.clone(), config.app_token.clone()),
+                    Messages::ApiLoaded,
+                )
+            }
+
+            Messages::ApiSetup(Err(err)) => {
+                eprintln!("{:?}", err);
+                self.page = Pages::ErrorPage(
+                    "Instellen mislukt, probeer opnieuw. Check de logs voor de error.".into(),
+                );
+
+                Task::perform(
+                    time::sleep(self.config_manager.get().schedule_timeout),
+                    |_| Messages::SwitchPage(Pages::SetupPage),
+                )
+            }
+
+            Messages::ApiLoaded(Err(err)) => {
+                eprintln!("{:?}", err);
+                self.page = Pages::ErrorPage(
+                    "Het lukte niet om met onze server te verbinden. We proberen het over een minuut opnieuw.".into(),
+                );
+                Task::perform(
+                    time::sleep(self.config_manager.get().api_retry_duration),
+                    |_| Messages::ApiRetry,
+                )
+            }
+
+            Messages::ApiScheduleReceived(Err(err)) => {
+                eprintln!("{:?}", err);
+                self.page =
+                    Pages::ErrorPage("Er ging iets mis met het ophalen van je rooster.".into());
+
+                Task::perform(
+                    time::sleep(self.config_manager.get().schedule_timeout),
+                    |_| Messages::SwitchPage(Pages::LoginPage),
+                )
             }
 
             _ => Task::none(),
@@ -191,7 +229,10 @@ impl App {
             Pages::SchedulePage(page) => page.view(),
             Pages::LoginPage => StaticPages::scan(),
             Pages::SetupPage => StaticPages::setup(&config.app_name),
+            Pages::ErrorPage(message) => StaticPages::error(message),
             Pages::None => widget::space().into(),
+
+            _ => todo!(),
         }
     }
 }
